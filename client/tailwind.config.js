@@ -69,6 +69,11 @@ export default {
         },
         shimmer: { '0%': { backgroundPosition: '-500px 0' }, '100%': { backgroundPosition: '500px 0' } },
         'draw-check': { '0%': { strokeDashoffset: 60 }, '100%': { strokeDashoffset: 0 } },
+        shake: {
+          '0%,100%': { transform: 'translateX(0)' },
+          '20%,60%': { transform: 'translateX(-7px)' },
+          '40%,80%': { transform: 'translateX(7px)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up .45s cubic-bezier(.22,1,.36,1) both',
@@ -78,6 +83,7 @@ export default {
         'flash-row': 'flash-row 2.4s ease-out both',
         shimmer: 'shimmer 1.6s linear infinite',
         'draw-check': 'draw-check .5s ease-out .15s both',
+        shake: 'shake .42s cubic-bezier(.36,.07,.19,.97) both',
       },
     },
   },

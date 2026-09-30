@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal } from '../../components/Modal.jsx';
 import { QrScanner } from '../../components/QrScanner.jsx';
+import { PinPad } from '../../components/PinPad.jsx';
 import { SimulatedTag, Spinner, SuccessCheck } from '../../components/Brand.jsx';
 import { merchantApi } from '../../services/api.js';
 import { avatarColor, formatINR, initials, newIdempotencyKey } from '../../utils/format.js';
 
 /**
- * The merchant charge flow: scan → student found → amount → confirm → success.
+ * The merchant charge flow:
+ *   scan → student found → amount → confirm → PIN → success
+ *
+ * The PIN step is the authorisation gate. Without it, a merchant who simply
+ * knows a student's admission number could type it into manual entry and charge
+ * them — identifying a wallet is not the same as being allowed to debit it.
+ * Requiring the wallet holder to approve the specific amount closes that.
+ *
+ * See PinPad.jsx for the (important) caveats about what this prototype's PIN
+ * check actually proves.
  *
  * In OFFLINE DEMO mode the same flow runs, but the student is resolved from a
  * locally-cached lookup where possible and the charge is queued instead of sent.
@@ -14,8 +24,9 @@ import { avatarColor, formatINR, initials, newIdempotencyKey } from '../../utils
 
 const QUICK_AMOUNTS = [20, 40, 50, 80, 100, 150, 200, 250];
 
-export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQueued, knownStudents }) {
-  const [step, setStep] = useState('scan'); // scan | student | confirm | processing | success | error
+export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQueued, knownStudents, merchantName }) {
+  // scan | student | confirm | pin | processing | success | error | declined
+  const [step, setStep] = useState('scan');
   const [student, setStudent] = useState(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -105,7 +116,12 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
   const exceedsBalance =
     student?.walletBalance !== null && student?.walletBalance !== undefined && numericAmount > student.walletBalance;
 
-  async function confirmCharge() {
+  /**
+   * Runs ONLY after the student has authorised with their PIN.
+   * Nothing else calls this — the confirm screen routes to the PIN pad, and the
+   * PIN pad's success handler is the single entry point.
+   */
+  async function confirmCharge(authorisedPin) {
     setError(null);
 
     if (offlineMode) {
@@ -129,6 +145,8 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
         amount: numericAmount,
         note,
         idempotencyKey: idempotencyKey.current,
+        // Only meaningful when the server runs with REQUIRE_WALLET_PIN=true.
+        pin: authorisedPin,
       });
       setResult(res);
       setStep('success');
@@ -160,10 +178,23 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
       onClose={step === 'processing' ? undefined : onClose}
       dismissable={step !== 'processing'}
       title={
-        { scan: 'Scan student QR', student: 'Student found', confirm: 'Confirm payment', error: 'Payment failed' }[step] ??
-        null
+        {
+          scan: 'Scan student QR',
+          student: 'Student found',
+          confirm: 'Confirm payment',
+          pin: 'Student authorisation',
+          error: 'Payment failed',
+        }[step] ?? null
       }
-      subtitle={step === 'scan' ? (offlineMode ? 'Offline demo mode — payment will be queued' : 'Point the camera at their wallet QR') : null}
+      subtitle={
+        step === 'scan'
+          ? offlineMode
+            ? 'Offline demo mode — payment will be queued'
+            : 'Point the camera at their wallet QR'
+          : step === 'pin'
+            ? 'The student must approve this payment'
+            : null
+      }
       size="sm"
     >
       {/* ---------- Scan ---------- */}
@@ -345,8 +376,50 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
             <button type="button" className="btn-ghost flex-1" onClick={() => setStep('student')}>
               Back
             </button>
-            <button type="button" className="btn-mint btn-lg flex-[2]" onClick={confirmCharge}>
-              {offlineMode ? 'Queue payment' : 'Confirm'}
+            <button type="button" className="btn-mint btn-lg flex-[2]" onClick={() => setStep('pin')}>
+              Continue to PIN
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- Student PIN authorisation ---------- */}
+      {step === 'pin' && student && (
+        <PinPad
+          student={student}
+          amount={numericAmount}
+          merchantName={merchantName ?? 'this shop'}
+          onSuccess={confirmCharge}
+          onCancel={() => setStep('confirm')}
+          onLockout={() => {
+            setError('Too many incorrect PIN attempts. The payment was declined.');
+            setStep('declined');
+          }}
+        />
+      )}
+
+      {/* ---------- Declined (PIN lockout) ---------- */}
+      {step === 'declined' && (
+        <div className="flex flex-col items-center gap-5 py-2 text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-danger-500/15 ring-1 ring-danger-500/40 animate-pop-in">
+            <svg viewBox="0 0 24 24" className="h-9 w-9 text-danger-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M6.3 6.3l11.4 11.4" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[.18em] text-danger-400">Payment declined</p>
+            <p className="mt-2 text-sm font-semibold text-slate-300">{error}</p>
+            <p className="mt-2 text-[11px] text-slate-500">
+              No money moved. The student's wallet is untouched.
+            </p>
+          </div>
+          <div className="flex w-full gap-2">
+            <button type="button" className="btn-ghost flex-1" onClick={onClose}>
+              Close
+            </button>
+            <button type="button" className="btn-primary flex-1" onClick={restart}>
+              Start over
             </button>
           </div>
         </div>

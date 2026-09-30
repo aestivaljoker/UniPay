@@ -383,6 +383,68 @@ So the flow is: **scan → resolve identifier against the server → server retu
 the live balance → charge.** `POST /api/payments/resolve-qr` does the lookup, and
 the balance the shopkeeper sees is read from storage at that instant.
 
+## 8a. Student PIN authorisation
+
+**Identifying a wallet is not the same as being allowed to debit it.**
+
+Without an approval step, a merchant who simply knows a student's admission
+number could type it into manual entry and charge them — no QR, no consent. The
+QR proves *which* wallet; it does not prove *the owner agreed*.
+
+So the charge flow requires the student to approve the specific amount:
+
+```
+scan → student found → enter amount → confirm → STUDENT PIN → charge
+```
+
+The PIN screen restates who is being charged, how much, and by which shop, then
+asks for a 4-digit PIN on a large keypad meant to be handed across the counter.
+Three wrong attempts decline the payment outright.
+
+**Demo PIN: `2005`**
+
+### What this does and does not prove
+
+| | |
+|---|---|
+| ✅ Demonstrates the authorisation step in the payment flow | |
+| ✅ Blocks the "merchant types an admission number by hand" hole in the UI | |
+| ❌ **The PIN is a single shared demo value checked in the browser** | Anyone with devtools can bypass it |
+| ❌ The student types their secret on **the merchant's device** | Real PIN-on-glass needs certified hardware |
+| ❌ No rate limiting or wallet lockout that survives a page reload | |
+
+A production wallet would verify a **per-student** PIN **server-side** against a
+bcrypt/argon2 hash, rate-limit attempts, lock the wallet after repeated
+failures, and — better still — have the student approve on **their own device**
+via a push prompt or rotating token, so the secret never touches hardware the
+merchant controls. That is how UPI actually works.
+
+### Optional server-side enforcement
+
+By default the API accepts a charge without a PIN, because the PIN is a UI step.
+To also enforce it at the API level (so a crafted request cannot skip the
+student's approval):
+
+```bash
+REQUIRE_WALLET_PIN=true npm start
+```
+```powershell
+$env:REQUIRE_WALLET_PIN="true"; npm start    # PowerShell
+```
+
+The client already sends the PIN with every charge, so no front-end change is
+needed. With the flag on:
+
+| Request | Result |
+|---|---|
+| No `pin` field | `400 PIN_REQUIRED` — *"Student PIN is required to authorise this payment."* |
+| `pin: "1234"` | `400 PIN_INCORRECT` — *"Incorrect wallet PIN."* |
+| `pin: "2005"` | `201` — charge proceeds |
+
+Override the value with `DEMO_WALLET_PIN=1234`. This is still one shared PIN, not
+a per-student secret — it closes the API hole for the demo without pretending to
+be real wallet security.
+
 ## 9. How the simulated payment gateway works
 
 When a student adds money, the UI walks a realistic checkout:
@@ -575,7 +637,8 @@ genuinely different infrastructure, not a software change.
 | **3** | **Laptop** | *Do not touch it* | **LIVE ACTIVITY** shows *PAYMENT RECEIVED · Devansh · ₹500* the instant the phone confirms. Total Wallet Balance ticks up. **No refresh.** |
 | **4** | Student phone | **SHOW MY QR** | Large QR. Say: *this contains only the student ID — never the balance* |
 | **5** | Shopkeeper phone | Log in as `canteen@unipay.demo` → **SCAN STUDENT** → scan the QR | *STUDENT FOUND · Devansh Ojha · Balance ₹1,500* — read live from the server |
-| **6** | Shopkeeper phone | Enter `150` → **CHARGE STUDENT** → **CONFIRM** | ✓ PAYMENT SUCCESSFUL, `TXN-…`, student balance ₹1,350 |
+| **6** | Shopkeeper phone | Enter `150` → **CHARGE STUDENT** → **CONTINUE TO PIN** | Say: *scanning proves which wallet — it does not prove the student agreed. Otherwise any shop that knew an admission number could charge anyone.* |
+| **6b** | **Hand the phone to the "student"** | Enter PIN `2005` | ✓ PAYMENT SUCCESSFUL, `TXN-…`, student balance ₹1,350. *(Optional: enter a wrong PIN first — three failures decline the payment outright and no money moves.)* |
 | **7** | Student phone + laptop | Look at both | Student wallet → **₹1,350** with no interaction. Laptop live feed shows *Devansh → Canteen #1 · ₹150*. Merchant receivable → **₹150** |
 | **8** | **Laptop** | **TO BE PAID** | *Canteen Shop #1 · ₹150 · [PAY NOW]*. Say: *the shop was never paid directly — it holds a claim on the university* |
 | **9** | **Laptop** | **PAY NOW** → **CONFIRM PAYOUT** | Simulated bank transfer stages → ✓ PAYOUT SUCCESSFUL. Receivable → **₹0**, status **SETTLED**. Shopkeeper's phone shows *Payout received* |

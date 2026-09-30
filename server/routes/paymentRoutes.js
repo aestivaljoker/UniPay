@@ -24,6 +24,17 @@ const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next
 const VALID_METHODS = new Set(['UPI', 'CARD', 'NETBANKING']);
 
 /**
+ * Wallet PIN configuration.
+ *
+ * The student PIN is primarily a UI authorisation step on the merchant device.
+ * Setting REQUIRE_WALLET_PIN=true also enforces it on this endpoint, which
+ * closes the "merchant types an admission number by hand and charges anyone"
+ * hole at the API level too.
+ */
+const DEMO_WALLET_PIN = process.env.DEMO_WALLET_PIN || '2005';
+const REQUIRE_WALLET_PIN = String(process.env.REQUIRE_WALLET_PIN ?? '').toLowerCase() === 'true';
+
+/**
  * POST /api/payments/topup
  * Body: { amount, method, idempotencyKey }
  */
@@ -95,6 +106,20 @@ router.post(
 
     const parsed = parseAmount(req.body.amount, { min: 1, max: MAX_CHARGE, label: 'amount' });
     if (!parsed.ok) throw badRequest(parsed.message, 'INVALID_AMOUNT');
+
+    // Optional server-side PIN enforcement.
+    //
+    // By default the PIN is a UI-only step (see client PinPad.jsx), which is
+    // enough to demonstrate the authorisation flow. Set REQUIRE_WALLET_PIN=true
+    // to also enforce it here, so a crafted API call cannot skip the student's
+    // approval. Even then this is prototype-grade: the PIN is a single shared
+    // demo value, not a per-student secret, and a real system would store a
+    // bcrypt hash per wallet and rate-limit attempts.
+    if (REQUIRE_WALLET_PIN) {
+      const pin = cleanString(req.body.pin, { max: 12 });
+      if (!pin) throw badRequest('Student PIN is required to authorise this payment.', 'PIN_REQUIRED');
+      if (pin !== DEMO_WALLET_PIN) throw badRequest('Incorrect wallet PIN.', 'PIN_INCORRECT');
+    }
 
     const result = await chargeStudent({
       studentId,

@@ -389,6 +389,7 @@ export default function MerchantDashboard() {
         onClose={() => setChargeOpen(false)}
         offlineMode={queue.offlineMode}
         knownStudents={knownStudents.current}
+        merchantName={profile.shopName}
         onCharged={(res) => {
           knownStudents.current[res.student.id] = { name: res.student.name, walletBalance: res.student.walletBalance };
           patchProfile({ pendingReceivable: res.merchant.pendingReceivable });

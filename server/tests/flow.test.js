@@ -329,6 +329,16 @@ describe('UniPay end-to-end money flow', () => {
     assert.equal(dup.status, 409);
   });
 
+  it('accepts a charge without a PIN by default (PIN is a UI-level step)', async () => {
+    // Documents the default posture: the student PIN is enforced in the merchant
+    // UI, not by this endpoint. Set REQUIRE_WALLET_PIN=true to enforce it here.
+    const res = await api('POST', '/api/payments/charge', {
+      token: merchantToken,
+      body: { studentId: '24SCSE1010874', amount: 15, idempotencyKey: 'pin-default' },
+    });
+    assert.equal(res.status, 201, JSON.stringify(res.body));
+  });
+
   it('survives a transient file lock during a write (OneDrive / antivirus)', async () => {
     // Regression: a sync client holding a handle made fs.rename fail with EPERM,
     // which surfaced as a 500 on a payment and silently broke the demo.
