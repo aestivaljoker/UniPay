@@ -4,77 +4,77 @@
     "ownerName": "Rahul Kumar",
     "shopName": "Canteen Shop #1",
     "email": "canteen@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "pendingReceivable": 0,
     "lifetimeSettled": 3060,
     "category": "Food & Beverage",
     "location": "Academic Block A, Ground Floor",
     "status": "ACTIVE",
-    "createdAt": "2026-06-02T07:03:53.405Z"
+    "createdAt": "2026-06-02T07:16:07.846Z"
   },
   {
     "id": "CANTEEN002",
     "ownerName": "Sunita Patil",
     "shopName": "Canteen Shop #2",
     "email": "canteen2@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "pendingReceivable": 2430,
     "lifetimeSettled": 2460,
     "category": "Food & Beverage",
     "location": "Hostel Mess Complex",
     "status": "ACTIVE",
-    "createdAt": "2026-06-07T07:03:53.405Z"
+    "createdAt": "2026-06-07T07:16:07.846Z"
   },
   {
     "id": "STATION001",
     "ownerName": "Imran Shaikh",
     "shopName": "Campus Stationery",
     "email": "stationery@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "pendingReceivable": 860,
     "lifetimeSettled": 1840,
     "category": "Stationery",
     "location": "Library Building",
     "status": "ACTIVE",
-    "createdAt": "2026-06-12T07:03:53.405Z"
+    "createdAt": "2026-06-12T07:16:07.846Z"
   },
   {
     "id": "CAFE001",
     "ownerName": "Neha Joshi",
     "shopName": "The Brew Point",
     "email": "cafe@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "pendingReceivable": 1685,
     "lifetimeSettled": 1810,
     "category": "Cafe",
     "location": "Innovation Centre",
     "status": "ACTIVE",
-    "createdAt": "2026-06-17T07:03:53.405Z"
+    "createdAt": "2026-06-17T07:16:07.846Z"
   },
   {
     "id": "XEROX001",
     "ownerName": "Ganesh Yadav",
     "shopName": "Xerox & Print Hub",
     "email": "xerox@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "pendingReceivable": 495,
     "lifetimeSettled": 1780,
     "category": "Print Services",
     "location": "Admin Block",
     "status": "ACTIVE",
-    "createdAt": "2026-06-22T07:03:53.405Z"
+    "createdAt": "2026-06-22T07:16:07.846Z"
   },
   {
     "id": "JUICE001",
     "ownerName": "Lakshmi Reddy",
     "shopName": "Fresh Juice Corner",
     "email": "juice@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "pendingReceivable": 1240,
     "lifetimeSettled": 1850,
     "category": "Food & Beverage",
     "location": "Sports Complex",
     "status": "ACTIVE",
-    "createdAt": "2026-06-27T07:03:53.405Z"
+    "createdAt": "2026-06-27T07:16:07.846Z"
   }
 ]

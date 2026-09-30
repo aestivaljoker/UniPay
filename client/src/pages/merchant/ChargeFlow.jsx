@@ -26,6 +26,7 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
   const [manualOpen, setManualOpen] = useState(false);
 
   const idempotencyKey = useRef(null);
+  const resolvingRef = useRef(false);
 
   useEffect(() => {
     if (open) return undefined;
@@ -39,6 +40,7 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
       setManualId('');
       setManualOpen(false);
       idempotencyKey.current = null;
+      resolvingRef.current = false;
     }, 220);
     return () => clearTimeout(t);
   }, [open]);
@@ -46,7 +48,11 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
   /** Turn a decoded QR string into a student, online or offline. */
   const resolveStudent = useCallback(
     async (rawQr) => {
-      if (resolving) return;
+      // The in-flight guard is a ref, not state. If it were state it would have
+      // to be a dependency of this callback, the callback identity would change
+      // on every scan, and QrScanner would restart the camera mid-lookup.
+      if (resolvingRef.current) return;
+      resolvingRef.current = true;
       setResolving(true);
       setError(null);
 
@@ -76,10 +82,11 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
         setError(err.message);
         setStep('error');
       } finally {
+        resolvingRef.current = false;
         setResolving(false);
       }
     },
-    [offlineMode, knownStudents, resolving]
+    [offlineMode, knownStudents]
   );
 
   const submitManual = (e) => {
@@ -142,6 +149,9 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
     setError(null);
     setResult(null);
     idempotencyKey.current = null;
+    // Must clear, or a lookup that errored would leave the guard latched and
+    // every later scan would be ignored.
+    resolvingRef.current = false;
   };
 
   return (
@@ -197,8 +207,10 @@ export default function ChargeFlow({ open, onClose, offlineMode, onCharged, onQu
                   className="field font-mono uppercase"
                   value={manualId}
                   onChange={(e) => setManualId(e.target.value)}
-                  placeholder="GU2026DEV"
+                  placeholder="24SCSE1010531"
                   autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck="false"
                   autoFocus
                 />
               </label>

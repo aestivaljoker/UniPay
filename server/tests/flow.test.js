@@ -1,4 +1,4 @@
-/**
+﻿/**
  * End-to-end test of the money path, against the real HTTP API.
  *
  * Runs against a throwaway data directory so it never touches demo data.
@@ -58,7 +58,7 @@ describe('UniPay end-to-end money flow', () => {
       body: { email: 'devansh@unipay.demo', password: '123456' },
     });
     assert.equal(student.status, 200, JSON.stringify(student.body));
-    assert.equal(student.body.profile.id, 'GU2026DEV');
+    assert.equal(student.body.profile.id, '24SCSE1010531');
     assert.equal(student.body.profile.passwordHash, undefined, 'password hash must never be returned');
     studentToken = student.body.token;
 
@@ -84,7 +84,7 @@ describe('UniPay end-to-end money flow', () => {
   });
 
   it('starts Devansh at the documented demo balance', async () => {
-    const res = await api('GET', '/api/students/GU2026DEV', { token: studentToken });
+    const res = await api('GET', '/api/students/24SCSE1010531', { token: studentToken });
     assert.equal(res.status, 200);
     assert.equal(res.body.student.walletBalance, 1000);
   });
@@ -108,7 +108,7 @@ describe('UniPay end-to-end money flow', () => {
     assert.equal(res.status, 409);
     assert.match(res.body.message, /already processed/i);
 
-    const check = await api('GET', '/api/students/GU2026DEV', { token: studentToken });
+    const check = await api('GET', '/api/students/24SCSE1010531', { token: studentToken });
     assert.equal(check.body.student.walletBalance, 1500, 'balance must not double-credit');
   });
 
@@ -123,7 +123,7 @@ describe('UniPay end-to-end money flow', () => {
   });
 
   it('resolves a scanned QR to the live wallet without trusting the QR', async () => {
-    const qr = JSON.stringify({ type: 'UNIPAY_STUDENT', studentId: 'GU2026DEV', v: 1 });
+    const qr = JSON.stringify({ type: 'UNIPAY_STUDENT', studentId: '24SCSE1010531', v: 1 });
     const res = await api('POST', '/api/payments/resolve-qr', { token: merchantToken, body: { qr } });
     assert.equal(res.status, 200);
     assert.equal(res.body.student.name, 'Devansh Ojha');
@@ -133,10 +133,10 @@ describe('UniPay end-to-end money flow', () => {
   it('accepts the compact QR form too', async () => {
     const res = await api('POST', '/api/payments/resolve-qr', {
       token: merchantToken,
-      body: { qr: 'UNIPAY:GU2026DEV' },
+      body: { qr: 'UNIPAY:24SCSE1010531' },
     });
     assert.equal(res.status, 200);
-    assert.equal(res.body.student.id, 'GU2026DEV');
+    assert.equal(res.body.student.id, '24SCSE1010531');
   });
 
   it('rejects a foreign QR code', async () => {
@@ -154,7 +154,7 @@ describe('UniPay end-to-end money flow', () => {
 
     const res = await api('POST', '/api/payments/charge', {
       token: merchantToken,
-      body: { studentId: 'GU2026DEV', amount: 150, note: 'Lunch thali', idempotencyKey: 'test-charge-1' },
+      body: { studentId: '24SCSE1010531', amount: 150, note: 'Lunch thali', idempotencyKey: 'test-charge-1' },
     });
     assert.equal(res.status, 201, JSON.stringify(res.body));
     assert.equal(res.body.student.walletBalance, 1350);
@@ -167,12 +167,12 @@ describe('UniPay end-to-end money flow', () => {
     // stopped by the balance check, not by amount validation.
     const res = await api('POST', '/api/payments/charge', {
       token: merchantToken,
-      body: { studentId: 'GU2026DEV', amount: 20000, idempotencyKey: 'test-charge-overdraft' },
+      body: { studentId: '24SCSE1010531', amount: 20000, idempotencyKey: 'test-charge-overdraft' },
     });
     assert.equal(res.status, 400);
     assert.match(res.body.message, /Insufficient wallet balance/);
 
-    const check = await api('GET', '/api/students/GU2026DEV', { token: studentToken });
+    const check = await api('GET', '/api/students/24SCSE1010531', { token: studentToken });
     assert.equal(check.body.student.walletBalance, 1350, 'a failed charge must not move money');
   });
 
@@ -182,13 +182,13 @@ describe('UniPay end-to-end money flow', () => {
     const attempts = Array.from({ length: 10 }, (_, i) =>
       api('POST', '/api/payments/charge', {
         token: merchantToken,
-        body: { studentId: 'GU2026DEV', amount: 200, idempotencyKey: `race-${i}` },
+        body: { studentId: '24SCSE1010531', amount: 200, idempotencyKey: `race-${i}` },
       })
     );
     const results = await Promise.all(attempts);
     const succeeded = results.filter((r) => r.status === 201).length;
 
-    const check = await api('GET', '/api/students/GU2026DEV', { token: studentToken });
+    const check = await api('GET', '/api/students/24SCSE1010531', { token: studentToken });
     assert.ok(check.body.student.walletBalance >= 0, 'balance must never go negative');
     assert.equal(check.body.student.walletBalance, 1350 - succeeded * 200);
   });
@@ -214,19 +214,19 @@ describe('UniPay end-to-end money flow', () => {
     // merchantId comes from the session, so a forged body field is ignored.
     const res = await api('POST', '/api/payments/charge', {
       token: merchantToken,
-      body: { studentId: 'GU2026ANA', merchantId: 'CAFE001', amount: 10, idempotencyKey: 'test-forge' },
+      body: { studentId: '24SCSE1010874', merchantId: 'CAFE001', amount: 10, idempotencyKey: 'test-forge' },
     });
     assert.equal(res.status, 201);
     assert.equal(res.body.transaction.merchantId, 'CANTEEN001');
   });
 
   it('stops a student reading another student wallet', async () => {
-    const res = await api('GET', '/api/students/GU2026ANA', { token: studentToken });
+    const res = await api('GET', '/api/students/24SCSE1010874', { token: studentToken });
     assert.equal(res.status, 401);
   });
 
   it('rejects unauthenticated payment calls', async () => {
-    const res = await api('POST', '/api/payments/charge', { body: { studentId: 'GU2026DEV', amount: 10 } });
+    const res = await api('POST', '/api/payments/charge', { body: { studentId: '24SCSE1010531', amount: 10 } });
     assert.equal(res.status, 401);
   });
 
@@ -264,7 +264,7 @@ describe('UniPay end-to-end money flow', () => {
   });
 
   it('syncs an offline-queued transaction exactly once', async () => {
-    const items = [{ studentId: 'GU2026ANA', amount: 60, note: 'Offline chai', clientKey: 'queued-abc' }];
+    const items = [{ studentId: '24SCSE1010874', amount: 60, note: 'Offline chai', clientKey: 'queued-abc' }];
 
     const first = await api('POST', '/api/sync', { token: merchantToken, body: { items } });
     assert.equal(first.status, 200, JSON.stringify(first.body));
@@ -284,9 +284,9 @@ describe('UniPay end-to-end money flow', () => {
       token: merchantToken,
       body: {
         items: [
-          { studentId: 'GU2026ANA', amount: 20, clientKey: 'batch-ok' },
+          { studentId: '24SCSE1010874', amount: 20, clientKey: 'batch-ok' },
           // Vikram only has ₹95.50 — within the cap, but he cannot cover it.
-          { studentId: 'GU2026VIK', amount: 5000, clientKey: 'batch-overdraft' },
+          { studentId: '23SCIV1050187', amount: 5000, clientKey: 'batch-overdraft' },
         ],
       },
     });
@@ -317,14 +317,14 @@ describe('UniPay end-to-end money flow', () => {
 
   it('signs up a new student and starts them at zero', async () => {
     const res = await api('POST', '/api/auth/student/signup', {
-      body: { name: 'Test User', email: 'newbie@unipay.demo', studentId: 'GU2026NEW', password: 'secret1' },
+      body: { name: 'Test User', email: 'newbie@unipay.demo', studentId: '25SCSE1019999', password: 'secret1' },
     });
     assert.equal(res.status, 201, JSON.stringify(res.body));
     assert.equal(res.body.profile.walletBalance, 0);
-    assert.equal(res.body.profile.qrIdentifier, 'UNIPAY:GU2026NEW');
+    assert.equal(res.body.profile.qrIdentifier, 'UNIPAY:25SCSE1019999');
 
     const dup = await api('POST', '/api/auth/student/signup', {
-      body: { name: 'Copy', email: 'other@unipay.demo', studentId: 'GU2026NEW', password: 'secret1' },
+      body: { name: 'Copy', email: 'other@unipay.demo', studentId: '25SCSE1019999', password: 'secret1' },
     });
     assert.equal(dup.status, 409);
   });
@@ -350,7 +350,7 @@ describe('UniPay end-to-end money flow', () => {
     try {
       const res = await api('POST', '/api/payments/charge', {
         token: merchantToken,
-        body: { studentId: 'GU2026ISH', amount: 30, idempotencyKey: 'eperm-retry' },
+        body: { studentId: '25SBSR1020903', amount: 30, idempotencyKey: 'eperm-retry' },
       });
       assert.equal(res.status, 201, `charge must survive a transient lock: ${JSON.stringify(res.body)}`);
       assert.ok(calls > 2, 'rename should have been retried');
@@ -363,7 +363,7 @@ describe('UniPay end-to-end money flow', () => {
     invalidateCache();
     const reread = await readData(COLLECTIONS.transactions, []);
     assert.ok(
-      reread.some((t) => t.studentId === 'GU2026ISH' && t.amount === 30),
+      reread.some((t) => t.studentId === '25SBSR1020903' && t.amount === 30),
       'the transaction must be persisted to disk after the retry'
     );
   });
@@ -371,9 +371,9 @@ describe('UniPay end-to-end money flow', () => {
   it('resets the demo back to the documented starting state', async () => {
     await resetDemoData();
     const students = await readData(COLLECTIONS.students, []);
-    const devansh = students.find((s) => s.id === 'GU2026DEV');
+    const devansh = students.find((s) => s.id === '24SCSE1010531');
     assert.equal(devansh.walletBalance, 1000);
-    assert.equal(students.find((s) => s.id === 'GU2026NEW'), undefined, 'signups are cleared by reset');
+    assert.equal(students.find((s) => s.id === '25SCSE1019999'), undefined, 'signups are cleared by reset');
 
     const merchants = await readData(COLLECTIONS.merchants, []);
     assert.equal(merchants.find((m) => m.id === 'CANTEEN001').pendingReceivable, 0);

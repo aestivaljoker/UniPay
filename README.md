@@ -93,32 +93,32 @@ of daily settlements.
 ```
   DEVICE 1                    DEVICE 3 (laptop)                DEVICE 2
   Student phone               CENTRAL UNIVERSITY SERVER        Shopkeeper phone
-  ─────────────               ─────────────────────────        ────────────────
-                                                          
-  React (mobile)                 ┌──────────────────┐         React (mobile)
-  ├─ Wallet balance              │  Express + REST  │         ├─ QR camera scan
-  ├─ ID QR code      ──HTTP──▶   │                  │   ◀──── ├─ Amount entry
-  ├─ Simulated       ◀─socket─   │  ┌────────────┐  │  socket ├─ Receivables
-  │  gateway                     │  │   LEDGER   │  │         └─ Offline queue
-  └─ Transactions                │  │  SERVICE   │  │
-                                 │  └─────┬──────┘  │
-                                 │        │         │
-                                 │  ┌─────▼──────┐  │
-                                 │  │ JSON files │  │
-                                 │  │ server/data│  │
-                                 │  └────────────┘  │
-                                 │                  │
-                                 │  ┌────────────┐  │
-                                 │  │ Socket.IO  │  │
-                                 │  └─────┬──────┘  │
-                                 └────────┼─────────┘
-                                          │
-                                 ┌────────▼─────────┐
-                                 │  ADMIN DASHBOARD │
-                                 │  Live activity   │
-                                 │  Analytics       │
-                                 │  TO BE PAID      │
-                                 └──────────────────┘
+  -------------               -------------------------        ----------------
+
+  React (mobile)                 +------------------+         React (mobile)
+  |- Wallet balance              |  Express + REST  |         |- QR camera scan
+  |- ID QR code      --HTTP-->   |                  |   <---- |- Amount entry
+  |- Simulated       <-socket-   |  +------------+  |  socket |- Receivables
+  |  gateway                     |  |   LEDGER   |  |         |- Offline queue
+  |- Transactions                |  |  SERVICE   |  |
+                                 |  +-----+------+  |
+                                 |        |         |
+                                 |  +-----v------+  |
+                                 |  | JSON files |  |
+                                 |  | server/data|  |
+                                 |  +------------+  |
+                                 |                  |
+                                 |  +------------+  |
+                                 |  | Socket.IO  |  |
+                                 |  +-----+------+  |
+                                 +--------|---------+
+                                          |
+                                 +--------v---------+
+                                 |  ADMIN DASHBOARD |
+                                 |  Live activity   |
+                                 |  Analytics       |
+                                 |  TO BE PAID      |
+                                 +------------------+
 ```
 
 **Every financial decision happens on the server.** The phones render state and
@@ -296,14 +296,37 @@ VITE_API_URL=http://192.168.1.100:5000
 **Step 5 — pick a role on each device.** Student phone → Student. Shopkeeper
 phone → Merchant. Laptop → Admin.
 
-## 7. The camera and HTTPS — read this before demoing
+## 7. The camera — read this before demoing
+
+### Easiest path: use the Render URL
+
+**Deploy to Render and open that `https://…` URL on both phones.** Real TLS means
+the camera just works — no flags, no tunnel, nothing to configure. This is the
+recommended setup for a presentation; see [§18](#18-deploying-to-render).
+
+### If the camera fails even on HTTPS
+
+The scanner names the specific cause instead of failing generically, and offers
+**Try again** for everything recoverable:
+
+| What you see | Cause | Fix |
+|---|---|---|
+| *Camera permission denied* | You (or an earlier visit) tapped **Block** | Tap the lock / ⓘ icon by the address bar → Permissions → allow Camera → **Try again** |
+| *Camera is in use* | Another app or tab holds the camera | Close it → **Try again** |
+| *Camera blocked in this frame* | Page is inside an iframe without `allow="camera"` | Open the URL in its own tab |
+| *Camera not available* | Opened in an in-app browser (Instagram, LinkedIn, a QR app) | Tap ⋯ → **Open in browser** |
+| *No usable camera* | The requested device would not open | Tap the flip-camera button, or use manual entry |
+
+> **The most common cause by far:** tapping **Block** on the permission prompt
+> once. Android remembers that choice for the site and never asks again, so it
+> looks exactly like a broken camera. Clear it through the lock icon.
+
+### If you are demoing over LAN instead of Render
 
 **Browsers only expose the camera in a secure context.** `https://` and
-`localhost` qualify; a plain `http://192.168.1.100:5000` **does not**. This is a
-browser rule, not a UniPay limitation — the merchant's scanner will show
-*"Camera needs a secure connection"* on a raw LAN IP.
-
-UniPay detects this and tells you which fix to use. Pick one:
+`localhost` qualify; a plain `http://192.168.1.100:5000` **does not**. That is a
+browser rule, not a UniPay limitation — the scanner will say *"Camera needs a
+secure connection"* on a raw LAN IP. Pick one:
 
 **Option A — Chrome flag on the shopkeeper's phone (fastest, ~30 seconds)**
 
@@ -328,7 +351,7 @@ everywhere. Needs an internet connection.
 **Option C — manual ID entry (guaranteed fallback)**
 
 Every scanner screen has a *"Camera not working? Enter ID manually"* link. Type
-`GU2026DEV` and the flow continues exactly as if it had been scanned. Keep this
+`24SCSE1010531` and the flow continues exactly as if it had been scanned. Keep this
 in your back pocket — it means a blocked camera can never end your presentation.
 
 > **Recommendation:** do Option A on the shopkeeper's phone before you present,
@@ -340,10 +363,10 @@ in your back pocket — it means a blocked camera can never end your presentatio
 A student's QR contains **an identifier and nothing else**:
 
 ```json
-{ "type": "UNIPAY_STUDENT", "studentId": "GU2026DEV", "v": 1 }
+{ "type": "UNIPAY_STUDENT", "studentId": "24SCSE1010531", "v": 1 }
 ```
 
-The compact form `UNIPAY:GU2026DEV` is also accepted, so a printed card or a
+The compact form `UNIPAY:24SCSE1010531` is also accepted, so a printed card or a
 hand-made QR still scans.
 
 **The balance is deliberately not in the QR.** This is the single most important
@@ -534,14 +557,20 @@ genuinely different infrastructure, not a software change.
 
 ## 14. The 3-device demo script
 
-**Before you start:** run `npm run build && npm start`, note the LAN URL the
-server prints, and do [Option A in §7](#7-the-camera-and-https--read-this-before-demoing)
-on the shopkeeper's phone so the camera works. Open the admin dashboard on the
-laptop and leave it visible throughout — it is the thing judges should watch.
+**Before you start:**
+
+1. **Open the Render URL on both phones** (recommended — HTTPS, so the camera
+   works with no setup). Demoing over LAN instead? Do
+   [Option A in §7](#7-the-camera--read-this-before-demoing) on the shopkeeper's
+   phone first.
+2. **Test the camera once** on the shopkeeper's phone and tap **Allow** on the
+   permission prompt. Do this before you present, not in front of judges.
+3. **Open the admin dashboard on the laptop** and leave it visible throughout —
+   it is the thing judges should be watching.
 
 | # | Device | Action | What to point at |
 |---|---|---|---|
-| **1** | Student phone | Log in as `devansh@unipay.demo` | Wallet shows **₹1,000.00**, UniPay ID `GU2026DEV` |
+| **1** | Student phone | Log in as `devansh@unipay.demo` | Wallet shows **₹1,000.00**, UniPay ID `24SCSE1010531` |
 | **2** | Student phone | **ADD MONEY** → `500` → **PROCEED TO PAYMENT** → **UPI** → **PAY ₹500** | Gateway stages, then ✓ with `UPI-SIM-…`. Balance → **₹1,500** |
 | **3** | **Laptop** | *Do not touch it* | **LIVE ACTIVITY** shows *PAYMENT RECEIVED · Devansh · ₹500* the instant the phone confirms. Total Wallet Balance ticks up. **No refresh.** |
 | **4** | Student phone | **SHOW MY QR** | Large QR. Say: *this contains only the student ID — never the balance* |

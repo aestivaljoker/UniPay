@@ -1,146 +1,146 @@
 [
   {
-    "id": "GU2026DEV",
+    "id": "24SCSE1010531",
     "name": "Devansh Ojha",
     "email": "devansh@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 1000,
-    "qrIdentifier": "UNIPAY:GU2026DEV",
+    "qrIdentifier": "UNIPAY:24SCSE1010531",
     "course": "B.Tech CSE",
     "year": 3,
     "status": "ACTIVE",
-    "createdAt": "2026-07-02T07:03:53.405Z"
+    "createdAt": "2026-07-02T07:16:07.846Z"
   },
   {
-    "id": "GU2026ANA",
+    "id": "24SCSE1010874",
     "name": "Ananya Sharma",
     "email": "ananya@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 2450,
-    "qrIdentifier": "UNIPAY:GU2026ANA",
+    "qrIdentifier": "UNIPAY:24SCSE1010874",
     "course": "B.Tech ECE",
     "year": 2,
     "status": "ACTIVE",
-    "createdAt": "2026-07-03T07:03:53.405Z"
+    "createdAt": "2026-07-03T07:16:07.846Z"
   },
   {
-    "id": "GU2026ROH",
+    "id": "25SBSR1020145",
     "name": "Rohan Verma",
     "email": "rohan@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 780.5,
-    "qrIdentifier": "UNIPAY:GU2026ROH",
+    "qrIdentifier": "UNIPAY:25SBSR1020145",
     "course": "BBA",
     "year": 1,
     "status": "ACTIVE",
-    "createdAt": "2026-07-04T07:03:53.405Z"
+    "createdAt": "2026-07-04T07:16:07.846Z"
   },
   {
-    "id": "GU2026PRI",
+    "id": "23SCSE1009312",
     "name": "Priya Nair",
     "email": "priya@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 3120,
-    "qrIdentifier": "UNIPAY:GU2026PRI",
+    "qrIdentifier": "UNIPAY:23SCSE1009312",
     "course": "B.Tech CSE",
     "year": 4,
     "status": "ACTIVE",
-    "createdAt": "2026-07-05T07:03:53.405Z"
+    "createdAt": "2026-07-05T07:16:07.846Z"
   },
   {
-    "id": "GU2026KAR",
+    "id": "24SBSR1020678",
     "name": "Karan Mehta",
     "email": "karan@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 145,
-    "qrIdentifier": "UNIPAY:GU2026KAR",
+    "qrIdentifier": "UNIPAY:24SBSR1020678",
     "course": "B.Com",
     "year": 2,
     "status": "ACTIVE",
-    "createdAt": "2026-07-06T07:03:53.405Z"
+    "createdAt": "2026-07-06T07:16:07.846Z"
   },
   {
-    "id": "GU2026SNE",
+    "id": "24SBAS1030291",
     "name": "Sneha Iyer",
     "email": "sneha@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 1890,
-    "qrIdentifier": "UNIPAY:GU2026SNE",
+    "qrIdentifier": "UNIPAY:24SBAS1030291",
     "course": "B.Sc Physics",
     "year": 3,
     "status": "ACTIVE",
-    "createdAt": "2026-07-07T07:03:53.405Z"
+    "createdAt": "2026-07-07T07:16:07.846Z"
   },
   {
-    "id": "GU2026ADI",
+    "id": "24SMEC1040556",
     "name": "Aditya Rao",
     "email": "aditya@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 560,
-    "qrIdentifier": "UNIPAY:GU2026ADI",
+    "qrIdentifier": "UNIPAY:24SMEC1040556",
     "course": "B.Tech Mech",
     "year": 2,
     "status": "ACTIVE",
-    "createdAt": "2026-07-08T07:03:53.405Z"
+    "createdAt": "2026-07-08T07:16:07.846Z"
   },
   {
-    "id": "GU2026ISH",
+    "id": "25SBSR1020903",
     "name": "Ishita Gupta",
     "email": "ishita@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 4200,
-    "qrIdentifier": "UNIPAY:GU2026ISH",
+    "qrIdentifier": "UNIPAY:25SBSR1020903",
     "course": "MBA",
     "year": 1,
     "status": "ACTIVE",
-    "createdAt": "2026-07-09T07:03:53.405Z"
+    "createdAt": "2026-07-09T07:16:07.846Z"
   },
   {
-    "id": "GU2026VIK",
+    "id": "23SCIV1050187",
     "name": "Vikram Singh",
     "email": "vikram@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 95.5,
-    "qrIdentifier": "UNIPAY:GU2026VIK",
+    "qrIdentifier": "UNIPAY:23SCIV1050187",
     "course": "B.Tech Civil",
     "year": 4,
     "status": "ACTIVE",
-    "createdAt": "2026-07-10T07:03:53.405Z"
+    "createdAt": "2026-07-10T07:16:07.846Z"
   },
   {
-    "id": "GU2026MEE",
+    "id": "24SDES1060432",
     "name": "Meera Krishnan",
     "email": "meera@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 2675,
-    "qrIdentifier": "UNIPAY:GU2026MEE",
+    "qrIdentifier": "UNIPAY:24SDES1060432",
     "course": "B.Des",
     "year": 3,
     "status": "ACTIVE",
-    "createdAt": "2026-07-11T07:03:53.405Z"
+    "createdAt": "2026-07-11T07:16:07.846Z"
   },
   {
-    "id": "GU2026ARJ",
+    "id": "25SCSE1011764",
     "name": "Arjun Pillai",
     "email": "arjun@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 1340,
-    "qrIdentifier": "UNIPAY:GU2026ARJ",
+    "qrIdentifier": "UNIPAY:25SCSE1011764",
     "course": "B.Tech IT",
     "year": 1,
     "status": "ACTIVE",
-    "createdAt": "2026-07-12T07:03:53.405Z"
+    "createdAt": "2026-07-12T07:16:07.846Z"
   },
   {
-    "id": "GU2026TAN",
+    "id": "24SHSS1070825",
     "name": "Tanvi Deshmukh",
     "email": "tanvi@unipay.demo",
-    "passwordHash": "$2a$08$oVkYXeLcAOU7ayMEZ0C2B.OuTHuOsrNlY0bof3Qo6fMiuiGqWaqLK",
+    "passwordHash": "$2a$08$85AgpSpGxAnGfaB2JdSDoOEWGMbdDlnmlF/rYIO14p07zFBFwH/3y",
     "walletBalance": 3055,
-    "qrIdentifier": "UNIPAY:GU2026TAN",
+    "qrIdentifier": "UNIPAY:24SHSS1070825",
     "course": "B.A Economics",
     "year": 2,
     "status": "ACTIVE",
-    "createdAt": "2026-07-13T07:03:53.405Z"
+    "createdAt": "2026-07-13T07:16:07.846Z"
   }
 ]

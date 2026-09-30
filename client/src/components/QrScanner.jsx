@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Spinner } from './Brand.jsx';
 
@@ -7,33 +7,88 @@ const REGION_ID = 'unipay-qr-region';
 /**
  * Camera QR scanner for the merchant POS.
  *
- * Two environment realities this component has to handle honestly:
+ * This component has exactly ONE job that is hard: start the camera once and
+ * keep it running. Several things make that harder than it looks on Android.
  *
- * 1. getUserMedia only exists in a SECURE CONTEXT. On a phone, plain
- *    http://192.168.x.x is NOT secure, so the camera is blocked by the browser
- *    — not by us. Rather than showing a dead black box, we detect it and tell
- *    the user exactly which of the two documented workarounds to use, and offer
- *    manual entry so the demo never hard-stops.
+ * 1. getUserMedia only works in a SECURE CONTEXT. Plain http://192.168.x.x is
+ *    not one, so the browser blocks the camera. We detect that and say which
+ *    documented workaround to use, and manual entry stays available so a demo
+ *    can never hard-stop. (On Render you get real HTTPS, so this is moot.)
  *
- * 2. Permission can be denied or the camera can be held by another app. Both
- *    get their own message.
+ * 2. The start sequence must NOT be restarted by React re-renders. An earlier
+ *    version had the start effect depend on `cameraIndex` while also *setting*
+ *    it, and on the `onScan` callback, which the parent recreated on every
+ *    state change. Both caused the effect to tear down an in-flight
+ *    getUserMedia, which Android surfaces as a generic "failed to open camera".
+ *    The camera is therefore started from an effect with a STABLE dependency
+ *    list, and the scan callback is read through a ref so a new callback
+ *    identity never remounts the camera.
+ *
+ * 3. `Html5Qrcode.getCameras()` itself prompts for permission in order to read
+ *    device labels. Calling it before starting means asking twice and doubling
+ *    the chance of a mis-timed prompt. We start with `facingMode: environment`
+ *    (no enumeration needed) and only enumerate afterwards, to populate the
+ *    flip-camera button.
  */
 export function QrScanner({ onScan, onError, paused = false }) {
   const scannerRef = useRef(null);
   const startedRef = useRef(false);
-  // Guards against the decoder firing the same code many times per second while
-  // the QR is still in frame.
   const lastScanRef = useRef({ text: null, at: 0 });
+
+  // Callbacks live in refs so their identity never participates in effect deps.
+  const onScanRef = useRef(onScan);
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+    onScanRef.current = onScan;
+    onErrorRef.current = onError;
+  }, [onScan, onError]);
 
   const [status, setStatus] = useState('starting'); // starting | scanning | error
   const [errorInfo, setErrorInfo] = useState(null);
   const [cameras, setCameras] = useState([]);
-  const [cameraIndex, setCameraIndex] = useState(0);
+  const [activeCameraId, setActiveCameraId] = useState(null);
+  // Bumping this is the ONLY way the camera restarts (retry / flip camera).
+  const [startToken, setStartToken] = useState(0);
+  // Which camera to request; null means "let the browser pick a rear one".
+  const requestedCameraRef = useRef(null);
+
+  const describeError = useCallback((err) => {
+    const name = err?.name ?? '';
+    const message = String(err?.message ?? err ?? '');
+
+    if (name === 'NotAllowedError' || name === 'SecurityError' || /permission|denied/i.test(message)) {
+      return {
+        kind: 'DENIED',
+        title: 'Camera permission denied',
+        detail:
+          'Tap the lock/ⓘ icon next to the address bar → Permissions → allow Camera, then tap Try again. On Android you may need Site settings → Camera → Allow.',
+      };
+    }
+    if (name === 'NotReadableError' || name === 'TrackStartError' || /in use|could not start video/i.test(message)) {
+      return {
+        kind: 'BUSY',
+        title: 'Camera is in use',
+        detail: 'Another app or browser tab is holding the camera. Close it, then tap Try again.',
+      };
+    }
+    if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+      return {
+        kind: 'NO_CAMERA',
+        title: 'No usable camera',
+        detail: 'The browser could not find a camera matching the request. Try flipping the camera, or use manual entry.',
+      };
+    }
+    return { kind: 'FAILED', title: 'Could not start the camera', detail: message || 'Unknown camera error.' };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
+    let localScanner = null;
 
     async function start() {
+      setStatus('starting');
+      setErrorInfo(null);
+
       // --- Secure-context gate ---
       const isSecure = window.isSecureContext || ['localhost', '127.0.0.1'].includes(window.location.hostname);
       if (!isSecure) {
@@ -42,81 +97,118 @@ export function QrScanner({ onScan, onError, paused = false }) {
           kind: 'INSECURE',
           title: 'Camera needs a secure connection',
           detail:
-            'Android blocks the camera on plain http:// addresses. Open UniPay through the tunnel URL (https), or enable this origin in chrome://flags → "Insecure origins treated as secure".',
+            'Android blocks the camera on plain http:// addresses. Open UniPay over https (the Render URL works), or add this address under chrome://flags → "Insecure origins treated as secure".',
         });
         return;
       }
 
       if (!navigator.mediaDevices?.getUserMedia) {
         setStatus('error');
-        setErrorInfo({ kind: 'UNSUPPORTED', title: 'Camera not available', detail: 'This browser does not expose a camera API.' });
+        setErrorInfo({
+          kind: 'UNSUPPORTED',
+          title: 'Camera not available',
+          detail:
+            'This browser does not expose a camera API. If you opened UniPay inside another app (Instagram, LinkedIn, a QR-scanner app), tap ⋯ → "Open in browser" and try again.',
+        });
         return;
       }
 
-      try {
-        const devices = await Html5Qrcode.getCameras();
-        if (cancelled) return;
+      // An in-app webview or an iframe without allow="camera" reports a camera
+      // API but refuses to grant it. Detecting the iframe case up front turns a
+      // confusing NotAllowedError into an actionable instruction.
+      if (window.self !== window.top) {
+        try {
+          const policy = document.featurePolicy ?? document.permissionsPolicy;
+          if (policy?.allowsFeature && !policy.allowsFeature('camera')) {
+            setStatus('error');
+            setErrorInfo({
+              kind: 'FRAMED',
+              title: 'Camera blocked in this frame',
+              detail: 'UniPay is embedded in a page that does not permit camera access. Open it in its own browser tab.',
+            });
+            return;
+          }
+        } catch {
+          /* feature-policy API unavailable — fall through and let start() try */
+        }
+      }
 
-        if (!devices?.length) {
-          setStatus('error');
-          setErrorInfo({ kind: 'NO_CAMERA', title: 'No camera found', detail: 'This device has no usable camera.' });
-          return;
+      try {
+        // The DOM node must exist before Html5Qrcode looks it up.
+        if (!document.getElementById(REGION_ID)) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          if (cancelled) return;
         }
 
-        setCameras(devices);
-        // Prefer the rear camera — a merchant scans away from themselves.
-        const rearIndex = devices.findIndex((d) => /back|rear|environment/i.test(d.label));
-        const chosen = cameraIndex || (rearIndex >= 0 ? rearIndex : 0);
-        setCameraIndex(chosen);
-
         const scanner = new Html5Qrcode(REGION_ID, { verbose: false });
+        localScanner = scanner;
         scannerRef.current = scanner;
 
+        // Prefer an explicitly chosen device; otherwise ask for "a rear camera"
+        // as a constraint and let the browser resolve it. The constraint form
+        // needs no device enumeration, so it needs no extra permission prompt.
+        const source = requestedCameraRef.current ?? { facingMode: { ideal: 'environment' } };
+
         await scanner.start(
-          devices[chosen]?.id ?? { facingMode: 'environment' },
+          source,
           {
-            fps: 12,
+            fps: 10,
             qrbox: (vw, vh) => {
-              const edge = Math.floor(Math.min(vw, vh) * 0.72);
+              const edge = Math.max(160, Math.floor(Math.min(vw, vh) * 0.7));
               return { width: edge, height: edge };
             },
-            aspectRatio: 1,
+            // No forced aspectRatio: over-constraining is a common cause of
+            // OverconstrainedError on cheaper Android sensors.
           },
           (decodedText) => {
             const now = Date.now();
-            // Same code within 2.5s is a repeat read, not a new scan.
             if (lastScanRef.current.text === decodedText && now - lastScanRef.current.at < 2500) return;
             lastScanRef.current = { text: decodedText, at: now };
-            onScan?.(decodedText);
+            onScanRef.current?.(decodedText);
           },
           () => {
-            /* per-frame "no QR in view" — normal, and far too noisy to surface */
+            /* per-frame "no QR in view" — normal, far too noisy to surface */
           }
         );
 
         if (cancelled) {
           await scanner.stop().catch(() => {});
+          await scanner.clear().catch(() => {});
           return;
         }
+
         startedRef.current = true;
         setStatus('scanning');
+
+        // Now that permission is granted, labels are readable — enumerate to
+        // decide whether to offer a flip-camera button. Purely cosmetic, so a
+        // failure here must not affect the running scanner.
+        Html5Qrcode.getCameras()
+          .then((devices) => {
+            if (cancelled || !devices?.length) return;
+            setCameras(devices);
+            setActiveCameraId((current) => current ?? requestedCameraRef.current ?? null);
+          })
+          .catch(() => {});
       } catch (err) {
         if (cancelled) return;
-        const name = err?.name ?? '';
-        const denied = name === 'NotAllowedError' || /permission/i.test(String(err?.message));
-        const busy = name === 'NotReadableError' || name === 'TrackStartError';
+
+        // A specific deviceId can fail on a device that reports it oddly.
+        // Fall back once to an unconstrained request before giving up.
+        if (requestedCameraRef.current) {
+          requestedCameraRef.current = null;
+          try {
+            await localScanner?.clear();
+          } catch {
+            /* ignore */
+          }
+          setStartToken((t) => t + 1);
+          return;
+        }
 
         setStatus('error');
-        setErrorInfo({
-          kind: denied ? 'DENIED' : busy ? 'BUSY' : 'FAILED',
-          title: denied ? 'Camera permission denied' : busy ? 'Camera is in use' : 'Could not start the camera',
-          detail: denied
-            ? 'Allow camera access for this site in your browser settings, then try again.'
-            : busy
-              ? 'Close any other app or tab using the camera and try again.'
-              : String(err?.message ?? err),
-        });
-        onError?.(err);
+        setErrorInfo(describeError(err));
+        onErrorRef.current?.(err);
       }
     }
 
@@ -124,10 +216,8 @@ export function QrScanner({ onScan, onError, paused = false }) {
 
     return () => {
       cancelled = true;
-      const scanner = scannerRef.current;
+      const scanner = localScanner ?? scannerRef.current;
       if (scanner && startedRef.current) {
-        // stop() rejects if the scanner already stopped; that is not an error
-        // worth surfacing during unmount.
         scanner
           .stop()
           .then(() => scanner.clear())
@@ -136,42 +226,55 @@ export function QrScanner({ onScan, onError, paused = false }) {
       }
       scannerRef.current = null;
     };
-    // cameraIndex intentionally drives a full restart when the user flips camera.
-  }, [cameraIndex, onScan, onError]);
+    // `startToken` is the only intentional restart trigger. `describeError` is a
+    // stable useCallback. Deliberately NOT depending on onScan/onError — see the
+    // header comment; that dependency is what broke the camera.
+  }, [startToken, describeError]);
 
-  // Pause decoding (e.g. while the amount sheet is open) without tearing the
-  // camera down — restarting it takes a second and looks broken on stage.
+  // Pause decoding (while the amount sheet is open) without tearing the camera
+  // down — restarting takes a second and looks broken on stage.
   useEffect(() => {
     const scanner = scannerRef.current;
-    if (!scanner || !startedRef.current) return;
+    if (!scanner || !startedRef.current || status !== 'scanning') return;
     try {
       if (paused) scanner.pause(true);
       else scanner.resume();
     } catch {
-      /* pause/resume throws if the scanner is mid-transition; harmless */
+      /* throws if mid-transition; harmless */
     }
   }, [paused, status]);
 
   const flipCamera = () => {
     if (cameras.length < 2) return;
-    setCameraIndex((i) => (i + 1) % cameras.length);
-    setStatus('starting');
+    const currentIndex = cameras.findIndex((c) => c.id === activeCameraId);
+    const next = cameras[(currentIndex + 1 + cameras.length) % cameras.length];
+    requestedCameraRef.current = next.id;
+    setActiveCameraId(next.id);
+    setStartToken((t) => t + 1);
+  };
+
+  const retry = () => {
+    requestedCameraRef.current = null;
+    setStartToken((t) => t + 1);
   };
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-black">
+      {/* Always mounted: Html5Qrcode needs this node to exist before start(). */}
       <div id={REGION_ID} className="min-h-[300px] w-full [&_video]:!w-full [&_video]:!object-cover" />
 
       {status === 'scanning' && (
         <>
-          {/* Reticle */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="relative h-[72%] w-[72%] max-w-[300px]">
-              {['-top-px -left-px border-l-4 border-t-4 rounded-tl-xl', '-top-px -right-px border-r-4 border-t-4 rounded-tr-xl', '-bottom-px -left-px border-l-4 border-b-4 rounded-bl-xl', '-bottom-px -right-px border-r-4 border-b-4 rounded-br-xl'].map(
-                (pos) => (
-                  <span key={pos} className={`absolute h-9 w-9 border-mint-400 ${pos}`} />
-                )
-              )}
+            <div className="relative h-[70%] w-[70%] max-w-[300px]">
+              {[
+                '-top-px -left-px border-l-4 border-t-4 rounded-tl-xl',
+                '-top-px -right-px border-r-4 border-t-4 rounded-tr-xl',
+                '-bottom-px -left-px border-l-4 border-b-4 rounded-bl-xl',
+                '-bottom-px -right-px border-r-4 border-b-4 rounded-br-xl',
+              ].map((pos) => (
+                <span key={pos} className={`absolute h-9 w-9 border-mint-400 ${pos}`} />
+              ))}
             </div>
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-4 pb-4 pt-10 text-center">
@@ -198,6 +301,9 @@ export function QrScanner({ onScan, onError, paused = false }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink-900 text-slate-400">
           <Spinner className="h-7 w-7 text-brand-400" />
           <p className="text-sm font-semibold">Starting camera…</p>
+          <p className="max-w-[240px] text-center text-[11px] text-slate-500">
+            Tap <span className="font-bold text-slate-300">Allow</span> if your browser asks for camera access.
+          </p>
         </div>
       )}
 
@@ -210,6 +316,11 @@ export function QrScanner({ onScan, onError, paused = false }) {
           </div>
           <p className="text-sm font-bold text-white">{errorInfo?.title}</p>
           <p className="max-w-xs text-xs leading-relaxed text-slate-400">{errorInfo?.detail}</p>
+          {errorInfo?.kind !== 'INSECURE' && errorInfo?.kind !== 'UNSUPPORTED' && (
+            <button type="button" onClick={retry} className="btn-ghost !min-h-0 mt-1 !px-4 !py-2 !text-[12px]">
+              Try again
+            </button>
+          )}
         </div>
       )}
     </div>

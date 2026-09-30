@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The UniPay QR contract.
  *
  * A student QR carries an identifier and NOTHING ELSE — no name, no balance.
@@ -6,9 +6,9 @@
  * current balance, so a stale or photographed QR can never assert a balance.
  *
  * Canonical payload (what we generate):
- *   {"type":"UNIPAY_STUDENT","studentId":"GU2026DEV","v":1}
+ *   {"type":"UNIPAY_STUDENT","studentId":"24SCSE1010531","v":1}
  *
- * We also accept the compact legacy form `UNIPAY:GU2026DEV` so a printed card
+ * We also accept the compact legacy form `UNIPAY:24SCSE1010531` so a printed card
  * or a hand-made QR still scans during a demo.
  */
 
@@ -44,7 +44,7 @@ export function parseStudentQr(raw) {
     }
   }
 
-  // Compact form: UNIPAY:GU2026DEV
+  // Compact form: UNIPAY:24SCSE1010531
   const match = /^UNIPAY:([A-Za-z0-9]{3,32})$/.exec(text);
   if (match) {
     const studentId = normaliseId(match[1]);

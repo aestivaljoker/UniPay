@@ -18,18 +18,20 @@ export const DEMO_PASSWORD = '123456';
 export const ADMIN_PASSWORD = 'admin123';
 
 const STUDENTS = [
-  { id: 'GU2026DEV', name: 'Devansh Ojha', email: 'devansh@unipay.demo', balance: 1000, course: 'B.Tech CSE', year: 3 },
-  { id: 'GU2026ANA', name: 'Ananya Sharma', email: 'ananya@unipay.demo', balance: 2450, course: 'B.Tech ECE', year: 2 },
-  { id: 'GU2026ROH', name: 'Rohan Verma', email: 'rohan@unipay.demo', balance: 780.5, course: 'BBA', year: 1 },
-  { id: 'GU2026PRI', name: 'Priya Nair', email: 'priya@unipay.demo', balance: 3120, course: 'B.Tech CSE', year: 4 },
-  { id: 'GU2026KAR', name: 'Karan Mehta', email: 'karan@unipay.demo', balance: 145, course: 'B.Com', year: 2 },
-  { id: 'GU2026SNE', name: 'Sneha Iyer', email: 'sneha@unipay.demo', balance: 1890, course: 'B.Sc Physics', year: 3 },
-  { id: 'GU2026ADI', name: 'Aditya Rao', email: 'aditya@unipay.demo', balance: 560, course: 'B.Tech Mech', year: 2 },
-  { id: 'GU2026ISH', name: 'Ishita Gupta', email: 'ishita@unipay.demo', balance: 4200, course: 'MBA', year: 1 },
-  { id: 'GU2026VIK', name: 'Vikram Singh', email: 'vikram@unipay.demo', balance: 95.5, course: 'B.Tech Civil', year: 4 },
-  { id: 'GU2026MEE', name: 'Meera Krishnan', email: 'meera@unipay.demo', balance: 2675, course: 'B.Des', year: 3 },
-  { id: 'GU2026ARJ', name: 'Arjun Pillai', email: 'arjun@unipay.demo', balance: 1340, course: 'B.Tech IT', year: 1 },
-  { id: 'GU2026TAN', name: 'Tanvi Deshmukh', email: 'tanvi@unipay.demo', balance: 3055, course: 'B.A Economics', year: 2 },
+  // Admission-number format, matching the university's real scheme
+  // (e.g. 24SCSE1010531 — intake year + school + roll).
+  { id: '24SCSE1010531', name: 'Devansh Ojha', email: 'devansh@unipay.demo', balance: 1000, course: 'B.Tech CSE', year: 3 },
+  { id: '24SCSE1010874', name: 'Ananya Sharma', email: 'ananya@unipay.demo', balance: 2450, course: 'B.Tech ECE', year: 2 },
+  { id: '25SBSR1020145', name: 'Rohan Verma', email: 'rohan@unipay.demo', balance: 780.5, course: 'BBA', year: 1 },
+  { id: '23SCSE1009312', name: 'Priya Nair', email: 'priya@unipay.demo', balance: 3120, course: 'B.Tech CSE', year: 4 },
+  { id: '24SBSR1020678', name: 'Karan Mehta', email: 'karan@unipay.demo', balance: 145, course: 'B.Com', year: 2 },
+  { id: '24SBAS1030291', name: 'Sneha Iyer', email: 'sneha@unipay.demo', balance: 1890, course: 'B.Sc Physics', year: 3 },
+  { id: '24SMEC1040556', name: 'Aditya Rao', email: 'aditya@unipay.demo', balance: 560, course: 'B.Tech Mech', year: 2 },
+  { id: '25SBSR1020903', name: 'Ishita Gupta', email: 'ishita@unipay.demo', balance: 4200, course: 'MBA', year: 1 },
+  { id: '23SCIV1050187', name: 'Vikram Singh', email: 'vikram@unipay.demo', balance: 95.5, course: 'B.Tech Civil', year: 4 },
+  { id: '24SDES1060432', name: 'Meera Krishnan', email: 'meera@unipay.demo', balance: 2675, course: 'B.Des', year: 3 },
+  { id: '25SCSE1011764', name: 'Arjun Pillai', email: 'arjun@unipay.demo', balance: 1340, course: 'B.Tech IT', year: 1 },
+  { id: '24SHSS1070825', name: 'Tanvi Deshmukh', email: 'tanvi@unipay.demo', balance: 3055, course: 'B.A Economics', year: 2 },
 ];
 
 const MERCHANTS = [

@@ -80,7 +80,7 @@ export default function StudentAuth() {
               label="Student ID"
               value={form.studentId}
               onChange={set('studentId')}
-              placeholder="GU2026DEV"
+              placeholder="24SCSE1010531"
               hint="Letters and numbers only — this becomes your QR identity."
               required
               autoCapitalize="characters"
