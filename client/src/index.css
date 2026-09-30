@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-ink-950 text-slate-100 font-sans antialiased;
+    /* iOS/Android address-bar-safe full height */
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  /* Number inputs: hide spinners so the amount pad reads as a POS field. */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/10;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-400 ring-offset-2 ring-offset-ink-950;
+  }
+}
+
+@layer components {
+  /* --- Surfaces --- */
+  .card {
+    @apply rounded-2xl border border-white/10 bg-ink-900/70 backdrop-blur-xl shadow-card;
+  }
+  .card-solid {
+    @apply rounded-2xl border border-white/10 bg-ink-900 shadow-card;
+  }
+  .panel-title {
+    @apply text-[11px] font-bold uppercase tracking-[.16em] text-slate-400;
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold
+           transition-all duration-150 active:scale-[.97]
+           disabled:pointer-events-none disabled:opacity-45;
+    min-height: 48px; /* comfortable Android tap target */
+  }
+  .btn-primary {
+    @apply btn bg-brand-500 text-white shadow-glow hover:bg-brand-400;
+  }
+  .btn-mint {
+    @apply btn bg-mint-grad text-ink-950 shadow-mint hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn border border-white/15 bg-white/[0.04] text-slate-200 hover:bg-white/10;
+  }
+  .btn-danger {
+    @apply btn bg-danger-500 text-white hover:bg-danger-400;
+  }
+  .btn-lg {
+    @apply px-6 py-4 text-base;
+    min-height: 60px;
+  }
+
+  /* --- Inputs --- */
+  .field {
+    @apply w-full rounded-xl border border-white/12 bg-ink-850/80 px-4 py-3 text-[15px] text-white
+           placeholder:text-slate-500 transition
+           focus:border-brand-400 focus:bg-ink-850 focus:outline-none focus:ring-2 focus:ring-brand-500/35;
+    min-height: 48px;
+  }
+  .label {
+    @apply mb-1.5 block text-[11px] font-bold uppercase tracking-[.14em] text-slate-400;
+  }
+
+  /* --- Badges --- */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.1em];
+  }
+  .badge-mint {
+    @apply badge bg-mint-500/15 text-mint-300 ring-1 ring-inset ring-mint-500/30;
+  }
+  .badge-gold {
+    @apply badge bg-gold-500/15 text-gold-400 ring-1 ring-inset ring-gold-500/30;
+  }
+  .badge-brand {
+    @apply badge bg-brand-500/15 text-brand-300 ring-1 ring-inset ring-brand-500/30;
+  }
+  .badge-danger {
+    @apply badge bg-danger-500/15 text-danger-400 ring-1 ring-inset ring-danger-500/30;
+  }
+  .badge-slate {
+    @apply badge bg-white/[0.06] text-slate-400 ring-1 ring-inset ring-white/10;
+  }
+
+  /* Numbers line up in tables and balances. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  .skeleton {
+    @apply rounded-lg bg-white/[0.06];
+    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+    background-size: 500px 100%;
+    @apply animate-shimmer;
+  }
+
+  /* Safe area padding for phones with a gesture bar. */
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .grid-lines {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+}
+
+/* Users who ask for reduced motion get the states, not the theatre. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

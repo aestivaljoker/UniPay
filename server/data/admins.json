@@ -1,0 +1,10 @@
+[
+  {
+    "id": "ADMIN001",
+    "name": "University Finance Office",
+    "email": "admin@unipay.demo",
+    "passwordHash": "$2a$08$c6LKiduYh.DlJAm12RVE4O1xKo7/kAno.BSUtgMRK3vmM9vxuPQLm",
+    "role": "ADMIN",
+    "createdAt": "2026-03-14T06:43:39.188Z"
+  }
+]

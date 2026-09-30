@@ -1,0 +1,136 @@
+[
+  {
+    "id": "STL-00005",
+    "merchantId": "XEROX001",
+    "merchantName": "Xerox & Print Hub",
+    "amount": 1780,
+    "transactionCount": 6,
+    "transactionIds": [
+      "TXN-00026",
+      "TXN-00027",
+      "TXN-00028",
+      "TXN-00029",
+      "TXN-00030",
+      "TXN-00031"
+    ],
+    "status": "COMPLETED",
+    "method": "SIMULATED_BANK_TRANSFER",
+    "simulated": true,
+    "reference": "PAYOUT-SIM-337289",
+    "initiatedBy": "ADMIN001",
+    "createdAt": "2026-09-21T06:43:39.188Z",
+    "completedAt": "2026-09-21T06:43:43.188Z"
+  },
+  {
+    "id": "STL-00006",
+    "merchantId": "JUICE001",
+    "merchantName": "Fresh Juice Corner",
+    "amount": 1850,
+    "transactionCount": 7,
+    "transactionIds": [
+      "TXN-00032",
+      "TXN-00033",
+      "TXN-00034",
+      "TXN-00035",
+      "TXN-00036",
+      "TXN-00037",
+      "TXN-00038"
+    ],
+    "status": "COMPLETED",
+    "method": "SIMULATED_BANK_TRANSFER",
+    "simulated": true,
+    "reference": "PAYOUT-SIM-295010",
+    "initiatedBy": "ADMIN001",
+    "createdAt": "2026-09-22T06:43:39.188Z",
+    "completedAt": "2026-09-22T06:43:43.188Z"
+  },
+  {
+    "id": "STL-00004",
+    "merchantId": "CAFE001",
+    "merchantName": "The Brew Point",
+    "amount": 1810,
+    "transactionCount": 7,
+    "transactionIds": [
+      "TXN-00019",
+      "TXN-00020",
+      "TXN-00021",
+      "TXN-00022",
+      "TXN-00023",
+      "TXN-00024",
+      "TXN-00025"
+    ],
+    "status": "COMPLETED",
+    "method": "SIMULATED_BANK_TRANSFER",
+    "simulated": true,
+    "reference": "PAYOUT-SIM-342886",
+    "initiatedBy": "ADMIN001",
+    "createdAt": "2026-09-24T06:43:39.188Z",
+    "completedAt": "2026-09-24T06:43:43.188Z"
+  },
+  {
+    "id": "STL-00002",
+    "merchantId": "CANTEEN002",
+    "merchantName": "Canteen Shop #2",
+    "amount": 2460,
+    "transactionCount": 6,
+    "transactionIds": [
+      "TXN-00008",
+      "TXN-00009",
+      "TXN-00010",
+      "TXN-00011",
+      "TXN-00012",
+      "TXN-00013"
+    ],
+    "status": "COMPLETED",
+    "method": "SIMULATED_BANK_TRANSFER",
+    "simulated": true,
+    "reference": "PAYOUT-SIM-222807",
+    "initiatedBy": "ADMIN001",
+    "createdAt": "2026-09-25T06:43:39.188Z",
+    "completedAt": "2026-09-25T06:43:43.188Z"
+  },
+  {
+    "id": "STL-00003",
+    "merchantId": "STATION001",
+    "merchantName": "Campus Stationery",
+    "amount": 1840,
+    "transactionCount": 5,
+    "transactionIds": [
+      "TXN-00014",
+      "TXN-00015",
+      "TXN-00016",
+      "TXN-00017",
+      "TXN-00018"
+    ],
+    "status": "COMPLETED",
+    "method": "SIMULATED_BANK_TRANSFER",
+    "simulated": true,
+    "reference": "PAYOUT-SIM-589687",
+    "initiatedBy": "ADMIN001",
+    "createdAt": "2026-09-26T06:43:39.188Z",
+    "completedAt": "2026-09-26T06:43:43.188Z"
+  },
+  {
+    "id": "STL-00001",
+    "merchantId": "CANTEEN001",
+    "merchantName": "Canteen Shop #1",
+    "amount": 3060,
+    "transactionCount": 7,
+    "transactionIds": [
+      "TXN-00001",
+      "TXN-00002",
+      "TXN-00003",
+      "TXN-00004",
+      "TXN-00005",
+      "TXN-00006",
+      "TXN-00007"
+    ],
+    "status": "COMPLETED",
+    "method": "SIMULATED_BANK_TRANSFER",
+    "simulated": true,
+    "reference": "PAYOUT-SIM-752568",
+    "initiatedBy": "ADMIN001",
+    "createdAt": "2026-09-28T06:43:39.188Z",
+    "completedAt": "2026-09-28T06:43:43.188Z"
+  }
+]

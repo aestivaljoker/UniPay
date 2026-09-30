@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+
+# Local env
+.env
+.env.local
+client/.env
+client/.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# jsonDb working files
+server/data/*.tmp
+server/data/*.corrupt-*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

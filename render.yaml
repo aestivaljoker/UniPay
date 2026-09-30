@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# Render deployment — UniPay hackathon prototype
+# ---------------------------------------------------------------------------
+# ONE service. Express builds the React app at deploy time and then serves it,
+# so the API, the Socket.IO endpoint and the UI all share a single origin.
+# That means no CORS setup and no VITE_API_URL to configure on Render.
+#
+# STORAGE WARNING — read before relying on this:
+# Data lives in JSON files inside the service's filesystem. On Render's free
+# tier that filesystem is EPHEMERAL: it is wiped on every deploy, and the
+# service also spins down after inactivity, so a cold start restores the
+# seeded demo data and discards anything created since. For a hackathon demo
+# that is acceptable (arguably convenient — every judge gets a clean slate).
+#
+# To make data survive restarts, attach a persistent disk (a paid feature) and
+# point the app at it by uncommenting the `disk` block and the
+# UNIPAY_DATA_DIR env var below.
+#
+# For anything real, replace JSON files with an actual database. See the
+# "Production roadmap" section of the README.
+services:
+  - type: web
+    name: unipay
+    runtime: node
+    plan: free
+    region: singapore # closest to an Indian campus; change if you prefer
+    buildCommand: npm install && npm install --prefix client && npm run build --prefix client
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # Render injects PORT automatically; server.js already reads it.
+
+      # --- Persistent storage (requires a paid plan) ---
+      # - key: UNIPAY_DATA_DIR
+      #   value: /var/data/unipay
+
+    # --- Persistent disk (requires a paid plan) ---
+    # disk:
+    #   name: unipay-data
+    #   mountPath: /var/data
+    #   sizeGB: 1

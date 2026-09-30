@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover + no user-scaling: this is a POS-style app used
+         one-handed on Android; accidental pinch-zoom during a payment is worse
+         than the accessibility cost, and every tap target is >=44px. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B1020" />
+    <meta name="description" content="UniPay — closed-loop campus wallet prototype. Your Campus. Your Wallet. One Tap." />
+    <title>UniPay — Your Campus. Your Wallet. One Tap.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234B5FE8'/%3E%3Cpath d='M20 18v16a12 12 0 0 0 24 0V18' stroke='white' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='32' cy='48' r='4' fill='%233FE3A5'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

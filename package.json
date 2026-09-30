@@ -1,0 +1,31 @@
+{
+  "name": "unipay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "UniPay — Your Campus. Your Wallet. One Tap. A closed-loop campus wallet prototype.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "server": "node server/server.js",
+    "dev:server": "node --watch server/server.js",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently -n SERVER,CLIENT -c cyan,magenta \"npm run dev:server\" \"npm run client\"",
+    "install:all": "npm install && npm install --prefix client",
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "start": "node server/server.js",
+    "seed": "node server/scripts/seed.js",
+    "reset": "node server/scripts/seed.js --force",
+    "test": "node --test server/tests/flow.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
