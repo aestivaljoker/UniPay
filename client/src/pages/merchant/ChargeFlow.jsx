@@ -530,11 +530,41 @@ function parseQrLocally(raw) {
       return null;
     }
   }
-  const match = /^UNIPAY:([A-Za-z0-9]{3,32})$/.exec(text);
-  return match ? normalise(match[1]) : null;
+  // UNIPAY:ID, with tolerant separators
+  const prefixed = /^UNIPAY[:\-_\s]+([A-Za-z0-9\-_\s]{3,40})$/i.exec(text);
+  if (prefixed) {
+    const id = normalise(prefixed[1]);
+    if (id) return id;
+  }
+
+  // URL-wrapped
+  if (/^https?:\/\//i.test(text)) {
+    try {
+      const url = new URL(text);
+      const candidate =
+        url.searchParams.get('studentId') ??
+        url.searchParams.get('id') ??
+        url.pathname.split('/').filter(Boolean).pop();
+      const id = normalise(candidate, { requireDigit: true });
+      if (id) return id;
+    } catch {
+      /* not parseable — fall through */
+    }
+  }
+
+  // Bare admission number
+  return normalise(text, { requireDigit: true });
 }
 
-function normalise(value) {
-  const id = String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  return id.length >= 3 ? id : null;
+/** Mirrors normaliseId in server/utils/qr.js — keep the two in step. */
+function normalise(value, { requireDigit = false } = {}) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return null;
+  if (!/^[A-Za-z0-9\-_\s]+$/.test(raw)) return null;
+
+  const id = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (id.length < 3 || id.length > 32) return null;
+  if (requireDigit && !/[0-9]/.test(id)) return null;
+
+  return id;
 }
