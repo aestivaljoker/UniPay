@@ -3,8 +3,8 @@
     "id": "ADMIN001",
     "name": "University Finance Office",
     "email": "admin@unipay.demo",
-    "passwordHash": "$2a$08$c6LKiduYh.DlJAm12RVE4O1xKo7/kAno.BSUtgMRK3vmM9vxuPQLm",
+    "passwordHash": "$2a$08$j3eG66RUXUEwqEINe0PRBu8DnQ7h/byhC/AIyTHhbYUTsEFyxg7Rq",
     "role": "ADMIN",
-    "createdAt": "2026-03-14T06:43:39.188Z"
+    "createdAt": "2026-03-14T07:03:53.405Z"
   }
 ]

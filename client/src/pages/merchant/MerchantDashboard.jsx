@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext.jsx';
 import { useConnection } from '../../hooks/useConnection.js';
 import { useOfflineQueue } from '../../hooks/useOfflineQueue.js';
 import { merchantApi } from '../../services/api.js';
-import { onEvents } from '../../services/socket.js';
+import { ensureSubscribed, onEvents } from '../../services/socket.js';
 import { avatarColor, formatINR, initials, relativeTime } from '../../utils/format.js';
 import ChargeFlow from './ChargeFlow.jsx';
 
@@ -57,6 +57,9 @@ export default function MerchantDashboard() {
   }, [load]);
 
   useEffect(() => {
+    // Claim merchant:<id> before wiring handlers — see socket.js:subscribe.
+    ensureSubscribed('MERCHANT', profile.id);
+
     const markFresh = (id) => {
       if (!id) return;
       setFreshIds((prev) => new Set(prev).add(id));

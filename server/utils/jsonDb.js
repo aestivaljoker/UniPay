@@ -73,15 +73,63 @@ export async function readData(file, fallback = []) {
   }
 }
 
-/** Replace a collection wholesale and flush it to disk. */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Replace a collection wholesale and flush it to disk.
+ *
+ * The write is atomic-ish: content goes to `<file>.tmp`, then that file is
+ * renamed over the target, so a crash mid-write cannot leave a half-written
+ * JSON file.
+ *
+ * WINDOWS / ONEDRIVE / ANTIVIRUS CAVEAT — this is why the retry loop exists:
+ * a sync client (OneDrive, Dropbox) or a virus scanner can hold a transient
+ * handle on either file, and Windows then fails the rename with EPERM or EBUSY.
+ * It is short-lived and clears on its own, but an unretried failure surfaces as
+ * a 500 on a payment, which looks to the user like "the payment vanished".
+ * Retrying with a short backoff turns a spurious OS-level lock into a
+ * few-millisecond delay. As a last resort we fall back to a direct overwrite,
+ * which gives up atomicity rather than giving up the write.
+ */
 export async function writeData(file, data) {
   await ensureDataDir();
   const target = filePath(file);
   const tmp = `${target}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf8');
-  await fs.rename(tmp, target);
+  const json = JSON.stringify(data, null, 2);
+
+  // Cache first: the in-memory value is the source of truth for this process,
+  // and it must not diverge from what callers already mutated even if the disk
+  // flush needs a few attempts.
   cache.set(path.basename(target), data);
-  return data;
+
+  const TRANSIENT = new Set(['EPERM', 'EACCES', 'EBUSY']);
+  let lastError;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      await fs.writeFile(tmp, json, 'utf8');
+      await fs.rename(tmp, target);
+      return data;
+    } catch (err) {
+      lastError = err;
+      if (!TRANSIENT.has(err.code)) throw err;
+      await sleep(25 * 2 ** attempt); // 25, 50, 100, 200, 400 ms
+    }
+  }
+
+  // Atomic path exhausted. Write in place so the data still lands.
+  try {
+    await fs.writeFile(target, json, 'utf8');
+    await fs.rm(tmp, { force: true }).catch(() => {});
+    console.warn(
+      `[jsonDb] ${path.basename(target)}: atomic rename kept failing (${lastError?.code}); wrote in place instead. ` +
+        'If this repeats, move the project out of a synced folder (OneDrive/Dropbox) or set UNIPAY_DATA_DIR.'
+    );
+    return data;
+  } catch (err) {
+    console.error(`[jsonDb] ${path.basename(target)}: write failed entirely.`, err);
+    throw err;
+  }
 }
 
 /**

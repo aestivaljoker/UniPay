@@ -12,7 +12,9 @@
  * to the backend directly.
  */
 
-const RAW_BASE = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/+$/, '');
+// `import.meta.env` is injected by Vite. Guarded so this module can also be
+// imported by plain Node (tests, tooling) without throwing at load time.
+const RAW_BASE = String(import.meta.env?.VITE_API_URL ?? '').trim().replace(/\/+$/, '');
 
 export const API_BASE = RAW_BASE;
 export const apiUrl = (path) => `${API_BASE}${path}`;

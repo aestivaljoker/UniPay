@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { useConnection } from '../../hooks/useConnection.js';
 import { adminApi } from '../../services/api.js';
-import { onEvents } from '../../services/socket.js';
+import { ensureSubscribed, onEvents } from '../../services/socket.js';
 import { avatarColor, formatCompactINR, formatINR, initials, relativeTime } from '../../utils/format.js';
 import { LiveActivityFeed } from './LiveActivityFeed.jsx';
 import SettlementModal from './SettlementModal.jsx';
@@ -82,6 +82,10 @@ export default function AdminDashboard() {
    * feedback, then a debounced refetch reconciles every number with the server.
    */
   useEffect(() => {
+    // Claim the admin room before wiring handlers. Without this the dashboard
+    // could sit connected but in no room, receiving nothing and looking frozen.
+    ensureSubscribed('ADMIN', profile?.id);
+
     const pushEvent = (event) => {
       if (!event) return;
       setSnapshot((prev) =>
@@ -134,8 +138,40 @@ export default function AdminDashboard() {
         scheduleRefetch();
       },
       'stats:dirty': scheduleRefetch,
+      // Any event at all means the ledger moved; refetch even if it is an event
+      // type this dashboard does not render specially.
+      connect: () => {
+        ensureSubscribed('ADMIN', profile?.id);
+        scheduleRefetch();
+      },
     });
-  }, [scheduleRefetch, toast]);
+  }, [scheduleRefetch, toast, profile?.id]);
+
+  /**
+   * Safety net.
+   *
+   * Socket.IO only delivers what happens while you are connected. If the laptop
+   * sleeps, the Wi-Fi blips, or a subscribe is lost mid-handshake, the dashboard
+   * would otherwise sit on stale numbers with no way to notice. A slow poll
+   * guarantees it converges on the truth within 20 seconds no matter what the
+   * socket did, and it is cheap because the payload is small and local.
+   */
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') loadAll({ silent: true });
+    }, 20000);
+
+    // Coming back to the tab should feel instant, not wait for the next tick.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') loadAll({ silent: true });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [loadAll]);
 
   async function runReset() {
     setResetting(true);

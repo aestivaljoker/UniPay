@@ -329,6 +329,45 @@ describe('UniPay end-to-end money flow', () => {
     assert.equal(dup.status, 409);
   });
 
+  it('survives a transient file lock during a write (OneDrive / antivirus)', async () => {
+    // Regression: a sync client holding a handle made fs.rename fail with EPERM,
+    // which surfaced as a 500 on a payment and silently broke the demo.
+    // writeData must retry rather than propagate a transient OS lock.
+    const fsPromises = (await import('node:fs/promises')).default;
+    const realRename = fsPromises.rename;
+    let calls = 0;
+
+    fsPromises.rename = async (...args) => {
+      calls += 1;
+      if (calls <= 2) {
+        const err = new Error('EPERM: operation not permitted, rename');
+        err.code = 'EPERM';
+        throw err;
+      }
+      return realRename(...args);
+    };
+
+    try {
+      const res = await api('POST', '/api/payments/charge', {
+        token: merchantToken,
+        body: { studentId: 'GU2026ISH', amount: 30, idempotencyKey: 'eperm-retry' },
+      });
+      assert.equal(res.status, 201, `charge must survive a transient lock: ${JSON.stringify(res.body)}`);
+      assert.ok(calls > 2, 'rename should have been retried');
+    } finally {
+      fsPromises.rename = realRename;
+    }
+
+    // And the retried write must actually be on disk, not just in memory.
+    const { invalidateCache } = await import('../utils/jsonDb.js');
+    invalidateCache();
+    const reread = await readData(COLLECTIONS.transactions, []);
+    assert.ok(
+      reread.some((t) => t.studentId === 'GU2026ISH' && t.amount === 30),
+      'the transaction must be persisted to disk after the retry'
+    );
+  });
+
   it('resets the demo back to the documented starting state', async () => {
     await resetDemoData();
     const students = await readData(COLLECTIONS.students, []);

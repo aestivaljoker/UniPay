@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { useConnection } from '../../hooks/useConnection.js';
 import { studentApi } from '../../services/api.js';
-import { onEvents } from '../../services/socket.js';
+import { ensureSubscribed, onEvents } from '../../services/socket.js';
 import { avatarColor, formatINR, initials, relativeTime } from '../../utils/format.js';
 import PaymentGateway from './PaymentGateway.jsx';
 
@@ -53,6 +53,9 @@ export default function StudentDashboard() {
    * balance the student sees is always the server's number, never a local guess.
    */
   useEffect(() => {
+    // Claim student:<id> before wiring handlers — see socket.js:subscribe.
+    ensureSubscribed('STUDENT', profile.id);
+
     const markFresh = (id) => {
       if (!id) return;
       setFreshIds((prev) => new Set(prev).add(id));

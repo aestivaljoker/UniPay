@@ -212,6 +212,30 @@ $env:PORT=5050; npm run server      # PowerShell
 PORT=5050 npm run server            # bash
 ```
 
+### ⚠️ If the project lives in OneDrive / Dropbox / Google Drive
+
+`writeData` saves to a temp file and renames it over the target, which is what
+makes a write atomic. A sync client holds transient handles on files it is
+uploading, and Windows then fails that rename with `EPERM` — which surfaced as a
+**500 on a payment**, so money never moved and the admin dashboard never showed
+the transaction.
+
+[jsonDb.js](server/utils/jsonDb.js) now retries the rename (25→400 ms backoff)
+and falls back to an in-place write, so this is handled. But sync clients also
+slow every write down and can revert files under you. **If you see
+`atomic rename kept failing` in the server log**, do one of:
+
+```powershell
+# Option A — keep the data outside the synced folder (recommended)
+$env:UNIPAY_DATA_DIR="C:\unipay-data"; npm start
+```
+
+Option B — move the whole project somewhere unsynced, e.g. `C:\dev\unipay`.
+
+Option C — pause OneDrive sync for the duration of the demo.
+
+This does not affect Render, where there is no sync client.
+
 ## 6. Connecting Android phones over LAN
 
 **Step 1 — put all three devices on the same network.** One Wi-Fi network, or

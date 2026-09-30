@@ -19,6 +19,10 @@ export function getSocket() {
   // which is what socket.io-client assumes when given no URL.
   socket = API_BASE ? io(API_BASE, socketOptions()) : io(socketOptions());
 
+  // Re-send the room identity on EVERY connect, including reconnects. This is
+  // the only place `subscribe` is emitted, so a socket can never end up
+  // connected-but-roomless — the bug that left the admin dashboard frozen
+  // because it silently received nothing.
   socket.on('connect', () => {
     if (identity) socket.emit('subscribe', identity);
   });
@@ -40,9 +44,38 @@ function socketOptions() {
   };
 }
 
-/** Join the rooms for this role/account. Safe to call repeatedly. */
+/**
+ * Join the rooms for this role/account. Safe to call repeatedly, and safe to
+ * call before or after the socket finishes connecting.
+ *
+ * Order matters here and used to be wrong. `identity` is set FIRST, so that if
+ * `getSocket()` has to create the socket, its `connect` handler already has an
+ * identity to send. Then, if the socket happens to be open already (a role
+ * switch on a live connection), we emit immediately — otherwise `connect` will.
+ * Either path joins the room; neither can silently skip it.
+ */
 export function subscribe(role, accountId) {
   identity = { role, accountId: accountId ?? null };
+  const s = getSocket();
+  if (s.connected) s.emit('subscribe', identity);
+  return identity;
+}
+
+/**
+ * Ensure the current identity is registered with the server.
+ *
+ * A page's data effect can run before `AuthProvider` has called `subscribe`
+ * (React mounts children before parent effects settle on a restored session).
+ * Dashboards call this from their own effect so they are never left listening
+ * on a socket that belongs to no room.
+ */
+export function ensureSubscribed(role, accountId) {
+  const next = { role, accountId: accountId ?? null };
+  const changed = !identity || identity.role !== next.role || identity.accountId !== next.accountId;
+  if (changed) return subscribe(role, accountId);
+
+  // Identity already correct — re-assert it if the socket is up, in case the
+  // original emit was lost mid-handshake.
   const s = getSocket();
   if (s.connected) s.emit('subscribe', identity);
   return identity;
