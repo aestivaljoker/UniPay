@@ -78,6 +78,17 @@ export function QrScanner({ onScan, onError, paused = false }) {
         detail: 'The browser could not find a camera matching the request. Try flipping the camera, or use manual entry.',
       };
     }
+    // html5-qrcode rejects bad constraints by throwing a plain STRING (not an
+    // Error), e.g. "'facingMode' should be string or object with exact as key".
+    // That is a bug in how we called it, not a device problem — say so, so it is
+    // never mistaken for a permissions or hardware fault.
+    if (/facingMode|deviceId|cameraIdOrConfig|should be string/i.test(message)) {
+      return {
+        kind: 'CONFIG',
+        title: 'Scanner configuration error',
+        detail: `${message} — this is an app bug, not a device problem. Use manual entry to continue.`,
+      };
+    }
     return { kind: 'FAILED', title: 'Could not start the camera', detail: message || 'Unknown camera error.' };
   }, []);
 
@@ -144,10 +155,15 @@ export function QrScanner({ onScan, onError, paused = false }) {
         localScanner = scanner;
         scannerRef.current = scanner;
 
-        // Prefer an explicitly chosen device; otherwise ask for "a rear camera"
-        // as a constraint and let the browser resolve it. The constraint form
-        // needs no device enumeration, so it needs no extra permission prompt.
-        const source = requestedCameraRef.current ?? { facingMode: { ideal: 'environment' } };
+        // Prefer an explicitly chosen device; otherwise ask for a rear camera.
+        //
+        // html5-qrcode validates this itself and accepts ONLY a plain string or
+        // an object keyed by `exact` — passing `{ ideal: ... }` throws
+        // "'facingMode' should be string or object with exact as key".
+        // The bare string is the soft form: the browser prefers a rear camera
+        // but still returns a front one on a device that has no rear camera,
+        // whereas `{ exact: 'environment' }` would fail outright there.
+        const source = requestedCameraRef.current ?? { facingMode: 'environment' };
 
         await scanner.start(
           source,
